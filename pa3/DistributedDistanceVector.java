@@ -50,25 +50,33 @@ public class DistributedDistanceVector {
 		Scanner scanner = new Scanner(new File(fileName));
 		while (scanner.hasNext()) {
 			int round = scanner.nextInt();
-			int source = scanner.nextInt();
-			int destination = scanner.nextInt();
-			int cost = scanner.nextInt();
+			int source = scanner.nextInt() - 1;
+			int destination = scanner.nextInt() - 1;
+			int weight = scanner.nextInt();
+			if (weight < 0 ) {
+				weight = INF;
+			}
 
 			// If the round exists, we just need to add to the list for it, other wise we create the list
 			if (topologicalEvents.containsKey(round)) {
-				topologicalEvents.get(round).add(new Event(source, destination, cost));
+				topologicalEvents.get(round).add(new Event(source, destination, weight));
 			} else {
 				topologicalEvents.put(round, new ArrayList());
-				topologicalEvents.get(round).add(new Event(source, destination, cost));
+				topologicalEvents.get(round).add(new Event(source, destination, weight));
 			}
 		}
 		scanner.close();
 	}
 
-	private static void updateTopology(int round) {
+	private static boolean updateTopology(int round) {
 		if (topologicalEvents.containsKey(round)) {
-			// handle any changes
+			for (Event event: topologicalEvents.get(round)) {
+				routingTables[event.source][event.source][event.destination] = event.weight;
+			}
+			changed = true;
+			return true;
 		}
+		return false;
 	}
 
 	private static void updateNeighbors() {
@@ -115,14 +123,21 @@ public class DistributedDistanceVector {
 			System.out.println("-- -- -- -- --");
 		}
 		System.out.println();
+		System.out.println("Convergence delay: " + convergenceDelay);
 		System.out.println("## ## ## ## ##");
 		System.out.println();
 	}
 
 	private static void runDistanceVector() {
+		convergenceDelay = 0;
 		System.out.println("Round " + 0);
 		printTables();
 		for (int round = 1; ; ++round) {
+			if (updateTopology(round)) {
+				convergenceDelay = 0;
+			} else {
+				convergenceDelay++;
+			}
 			updateNeighbors();
 			updateSelf();
 			System.out.println("Round " + round);
@@ -135,19 +150,19 @@ public class DistributedDistanceVector {
 
 	public static void main(String[] args) throws Exception {
 		takeInitialTopology(args[0]);
-		// takeTopologicalEvents(args[1]);
+		takeTopologicalEvents(args[1]);
 		runDistanceVector();
 	}
 
 	public static class Event {
 		public int source;
 		public int destination;
-		public int cost;
+		public int weight;
 
-		public Event(int source, int destination, int cost) {
+		public Event(int source, int destination, int weight) {
 			this.source = source;
 			this.destination = destination;
-			this.cost = cost;
+			this.weight = weight;
 		}
 	}
 }
