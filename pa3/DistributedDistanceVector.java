@@ -2,14 +2,16 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
+import java.util.ArrayList;
 
 public class DistributedDistanceVector {
 	private static int nRouter;
 	private static int[][][] routingTables;
-	private static int[][] topologicalEvents;
+	private static HashMap<Integer, ArrayList<Event>> topologicalEvents = new HashMap();
 	private static final int INF = Integer.MAX_VALUE / 2;
-	private static HashMap<Integer, HashSet<Integer>> neighbors = new HashMap();
+	private static HashMap<Integer, HashMap<Integer, Integer>> neighbors = new HashMap();
 	private static boolean changed;
+	private static int convergenceDelay;
 
 	private static void initRoutingTables() {
 		routingTables = new int[nRouter][nRouter][nRouter];
@@ -24,7 +26,7 @@ public class DistributedDistanceVector {
 					}
 				}
 			}
-			neighbors.put(router, new HashSet());
+			neighbors.put(router, new HashMap());
 		}
 	}
 
@@ -38,48 +40,40 @@ public class DistributedDistanceVector {
 			int weight = scanner.nextInt();
 			routingTables[source][source][destination] = weight;
 			routingTables[destination][destination][source] = weight;
-			neighbors.get(source).add(destination);
-			neighbors.get(destination).add(source);
+			neighbors.get(source).put(destination, weight);
+			neighbors.get(destination).put(source, weight);
 		}
 		scanner.close();
 	}
 
-	// This will take the topological event file and put it in a nx4 array where n is the number of events. The format for each row is the same as passed in [round][source][dest][newCost]
 	private static void takeTopologicalEvents(String fileName) throws Exception {
-		int events = countLines(fileName);
 		Scanner scanner = new Scanner(new File(fileName));
-		topologicalEvents = new int[events][4];
-		int row = 0;
 		while (scanner.hasNext()) {
-			topologicalEvents[row][0] = scanner.nextInt();
-			topologicalEvents[row][1] = scanner.nextInt();
-			topologicalEvents[row][2] = scanner.nextInt();
-			int weight = scanner.nextInt();
-			if (weight < 0) {
-				weight = INF;
+			int round = scanner.nextInt();
+			int source = scanner.nextInt();
+			int destination = scanner.nextInt();
+			int cost = scanner.nextInt();
+
+			// If the round exists, we just need to add to the list for it, other wise we create the list
+			if (topologicalEvents.containsKey(round)) {
+				topologicalEvents.get(round).add(new Event(source, destination, cost));
+			} else {
+				topologicalEvents.put(round, new ArrayList());
+				topologicalEvents.get(round).add(new Event(source, destination, cost));
 			}
-			topologicalEvents[row][3] = weight;
 		}
 		scanner.close();
 	}
 
-	private static int countLines(String fileName) throws Exception{
-		int count = 0;
-		Scanner scanner = new Scanner(new File(fileName));
-		while (scanner.hasNextLine()) {
-			count++;
-			scanner.nextLine();
+	private static void updateTopology(int round) {
+		if (topologicalEvents.containsKey(round)) {
+			// handle any changes
 		}
-		return count;
-	}
-
-	private static void updateTopology() {
-
 	}
 
 	private static void updateNeighbors() {
 		for (int router = 0; router < nRouter; ++router) {
-			for (int neighbor: neighbors.get(router)) {
+			for (int neighbor: neighbors.get(router).keySet()) {
 	            for (int destination = 0; destination < nRouter; ++destination) {
 	            	routingTables[router][neighbor][destination] = routingTables[neighbor][neighbor][destination];
 	            }
@@ -93,7 +87,7 @@ public class DistributedDistanceVector {
 			for (int destination = 0; destination < nRouter; ++destination) {
 				int currentDistance = routingTables[router][router][destination];
 				int minDistance = currentDistance;
-				for (int neighbor: neighbors.get(router)) {
+				for (int neighbor: neighbors.get(router).keySet()) {
 					minDistance = Math.min(minDistance, routingTables[router][router][neighbor] + routingTables[router][neighbor][destination]);
 				}
 				routingTables[router][router][destination] = minDistance;
@@ -141,7 +135,19 @@ public class DistributedDistanceVector {
 
 	public static void main(String[] args) throws Exception {
 		takeInitialTopology(args[0]);
-		takeTopologicalEvents(args[1]);
+		// takeTopologicalEvents(args[1]);
 		runDistanceVector();
+	}
+
+	public static class Event {
+		public int source;
+		public int destination;
+		public int cost;
+
+		public Event(int source, int destination, int cost) {
+			this.source = source;
+			this.destination = destination;
+			this.cost = cost;
+		}
 	}
 }
