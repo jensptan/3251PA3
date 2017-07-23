@@ -128,30 +128,53 @@ public class DistributedDistanceVector {
 		System.out.println();
 	}
 
-	private static void runDistanceVector() {
-		convergenceDelay = 0;
-		System.out.println("Round " + 0);
-		printTables();
-		for (int round = 1; ; ++round) {
-			if (updateTopology(round)) {
-				convergenceDelay = 0;
-			} else {
-				convergenceDelay++;
+	private static void runDistanceVector(int mode) {
+		if (mode == 1) {
+			convergenceDelay = 0;
+			System.out.println("Round " + 0);
+			printTables();
+			for (int round = 1; ; ++round) {
+				if (updateTopology(round)) {
+					convergenceDelay = 0;
+				} else {
+					convergenceDelay++;
+				}
+				updateNeighbors();
+				updateSelf();
+				System.out.println("Round " + round);
+				printTables();
+				if (changed == false) {
+					break;
+				}
 			}
-			updateNeighbors();
-			updateSelf();
+		} else if (mode == 0) {
+			convergenceDelay = 0;
+			int round;
+			for (round = 1; ; ++round) {
+				if (updateTopology(round)) {
+					convergenceDelay = 0;
+				} else {
+					convergenceDelay++;
+				}
+				updateNeighbors();
+				updateSelf();
+				if (changed == false) {
+					break;
+				}
+			}
 			System.out.println("Round " + round);
 			printTables();
-			if (changed == false) {
-				break;
-			}
+		} else {
+			System.out.println("Please use a valid mode:");
+			System.out.println("1 for a detailed output of each round");
+			System.out.println("0 for the final routing tables and convergenceDelay");
 		}
 	}
 
 	public static void main(String[] args) throws Exception {
 		takeInitialTopology(args[0]);
 		takeTopologicalEvents(args[1]);
-		runDistanceVector();
+		runDistanceVector(Integer.parseInt(args[2]));
 	}
 
 	public static class Event {
