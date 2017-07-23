@@ -62,6 +62,8 @@ public class DistributedDistanceVector {
 			routingTables[destination][destination][source] = weight;
 			neighbors.get(source).put(destination, weight);
 			neighbors.get(destination).put(source, weight);
+			forwardingTables[source][destination][1] = weight;
+			forwardingTables[source][destination][2] = destination;
 		}
 		scanner.close();
 	}
@@ -120,17 +122,16 @@ public class DistributedDistanceVector {
 				int minDistance = currentDistance;
 				for (int neighbor: neighbors.get(router).keySet()) {
 					minDistance = Math.min(minDistance, routingTables[router][router][neighbor] + routingTables[router][neighbor][destination]);
-				}
-				routingTables[router][router][destination] = minDistance;
-				if (currentDistance != minDistance) {
-					changed = true;
+					routingTables[router][router][destination] = minDistance;
+					if (currentDistance != minDistance) {
+						// Updates forwarding table
+						forwardingTables[router][destination][1] = minDistance;
+						forwardingTables[router][destination][2] = neighbor;
+						changed = true;
+					}
 				}
 			}
 		}
-	}
-
-	private static void updateForwardingTables() {
-
 	}
 
 	private static void printForwardingTables() {
@@ -145,8 +146,9 @@ public class DistributedDistanceVector {
 						System.out.print("inf  ");
 					}
 				}
-				System.out.println("-- -- -- -- --");
+				System.out.println();
 			}
+			System.out.println("-- -- -- -- --");
 		}
 		System.out.println();
 		System.out.println("## ## ## ## ##");
@@ -190,6 +192,7 @@ public class DistributedDistanceVector {
 				updateSelf();
 				System.out.println("Round " + round);
 				printTables();
+				printForwardingTables();
 				if (changed == false && round >= lastEvent) {
 					break;
 				}
