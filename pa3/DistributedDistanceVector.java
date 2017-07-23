@@ -3,6 +3,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.ArrayList;
+import java.util.TreeMap;
 
 public class DistributedDistanceVector {
 	private static int nRouter;
@@ -11,6 +12,7 @@ public class DistributedDistanceVector {
 	private static final int INF = Integer.MAX_VALUE / 2;
 	private static HashMap<Integer, HashMap<Integer, Integer>> neighbors = new HashMap();
 	private static boolean changed;
+	private static int lastEvent = 0;
 	private static int convergenceDelay;
 
 	private static void initRoutingTables() {
@@ -55,6 +57,9 @@ public class DistributedDistanceVector {
 			int weight = scanner.nextInt();
 			if (weight < 0 ) {
 				weight = INF;
+			}
+			if (round > lastEvent) {
+				lastEvent = round;
 			}
 
 			// If the round exists, we just need to add to the list for it, other wise we create the list
@@ -143,7 +148,7 @@ public class DistributedDistanceVector {
 				updateSelf();
 				System.out.println("Round " + round);
 				printTables();
-				if (changed == false) {
+				if (changed == false && round >= lastEvent) {
 					break;
 				}
 			}
