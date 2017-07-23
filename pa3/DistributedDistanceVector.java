@@ -8,6 +8,7 @@ import java.util.TreeMap;
 public class DistributedDistanceVector {
 	private static int nRouter;
 	private static int[][][] routingTables;
+	private static int[][][] forwardingTables;
 	private static HashMap<Integer, ArrayList<Event>> topologicalEvents = new HashMap();
 	private static final int INF = Integer.MAX_VALUE / 2;
 	private static HashMap<Integer, HashMap<Integer, Integer>> neighbors = new HashMap();
@@ -30,6 +31,10 @@ public class DistributedDistanceVector {
 			}
 			neighbors.put(router, new HashMap());
 		}
+	}
+
+	private static void initForwardingTables() {
+		forwardingTables = new int[nRouter][nRouter - 1][3];
 	}
 
 	private static void takeInitialTopology(String fileName) throws Exception {
@@ -111,6 +116,29 @@ public class DistributedDistanceVector {
 		}
 	}
 
+	private static void updateForwardingTables() {
+
+	}
+
+	private static void printForwardingTables() {
+		for (int router = 0; router < nRouter; ++router) {
+			System.out.println("Forwarding table at router " + (router + 1));
+			for (int destination = 0; destination < nRouter - 1; ++destination) {
+				for (int i = 0; i < 3; i++) {
+					if (forwardingTables[router][destination][i] < INF) {
+						System.out.format("%3d  ", forwardingTables[router][destination][i]);
+					}
+					else {
+						System.out.print("inf  ");
+					}
+				}
+				System.out.println("-- -- -- -- --");
+			}
+		}
+		System.out.println("## ## ## ## ##");
+		System.out.println();
+	}
+
 	private static void printTables() {
 		for (int router = 0; router < nRouter; ++router) {
 			System.out.println("Routing table at router " + (router + 1));
@@ -179,6 +207,7 @@ public class DistributedDistanceVector {
 	public static void main(String[] args) throws Exception {
 		takeInitialTopology(args[0]);
 		takeTopologicalEvents(args[1]);
+		initForwardingTables();
 		runDistanceVector(Integer.parseInt(args[2]));
 	}
 
