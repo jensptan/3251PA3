@@ -35,12 +35,24 @@ public class DistributedDistanceVector {
 
 	private static void initForwardingTables() {
 		forwardingTables = new int[nRouter][nRouter - 1][3];
+		for (int router = 0; router < nRouter; ++router) {
+			for (int destination = 0; destination < nRouter;  ++destination) {
+				if (destination != router && destination < router) {
+					forwardingTables[router][destination][0] = destination;
+					forwardingTables[router][destination][1] = INF;
+				} else if (destination != router && destination > router) {
+					forwardingTables[router][destination - 1][0] = destination;
+					forwardingTables[router][destination - 1][1] = INF;
+				}
+			}
+		}
 	}
 
 	private static void takeInitialTopology(String fileName) throws Exception {
 		Scanner scanner = new Scanner(new File(fileName));
 		nRouter = scanner.nextInt();
 		initRoutingTables();
+		initForwardingTables();
 		while (scanner.hasNext()) {
 			int source = scanner.nextInt() - 1;
 			int destination = scanner.nextInt() - 1;
@@ -135,6 +147,7 @@ public class DistributedDistanceVector {
 				System.out.println("-- -- -- -- --");
 			}
 		}
+		System.out.println();
 		System.out.println("## ## ## ## ##");
 		System.out.println();
 	}
@@ -207,7 +220,6 @@ public class DistributedDistanceVector {
 	public static void main(String[] args) throws Exception {
 		takeInitialTopology(args[0]);
 		takeTopologicalEvents(args[1]);
-		initForwardingTables();
 		runDistanceVector(Integer.parseInt(args[2]));
 	}
 
