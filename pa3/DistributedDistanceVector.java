@@ -34,15 +34,16 @@ public class DistributedDistanceVector {
 	}
 
 	private static void initForwardingTables() {
-		forwardingTables = new int[nRouter][nRouter - 1][3];
+		forwardingTables = new int[nRouter][nRouter][3];
 		for (int router = 0; router < nRouter; ++router) {
 			for (int destination = 0; destination < nRouter;  ++destination) {
-				if (destination != router && destination < router) {
+				if (destination != router) {
 					forwardingTables[router][destination][0] = destination;
 					forwardingTables[router][destination][1] = INF;
-				} else if (destination != router && destination > router) {
-					forwardingTables[router][destination - 1][0] = destination;
-					forwardingTables[router][destination - 1][1] = INF;
+				} else {
+					forwardingTables[router][destination][0] = destination;
+					forwardingTables[router][destination][1] = 0;
+					forwardingTables[router][destination][2] = destination;
 				}
 			}
 		}
@@ -135,7 +136,7 @@ public class DistributedDistanceVector {
 	private static void printForwardingTables() {
 		for (int router = 0; router < nRouter; ++router) {
 			System.out.println("Forwarding table at router " + (router + 1));
-			for (int destination = 0; destination < nRouter - 1; ++destination) {
+			for (int destination = 0; destination < nRouter; ++destination) {
 				for (int i = 0; i < 3; i++) {
 					if (forwardingTables[router][destination][i] < INF) {
 						System.out.format("%3d  ", forwardingTables[router][destination][i]);
