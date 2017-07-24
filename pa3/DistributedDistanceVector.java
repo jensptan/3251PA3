@@ -131,6 +131,15 @@ public class DistributedDistanceVector {
 		return false;
 	}
 
+	//Simulates the "broadcasting" of each router's distance vector to its neighbors.
+	//Each router has a nRouter + 1 x nRouter + 1 array, indices 1 to nRouter will be used.
+	//A router's broadcast array will hold the distance vectors its neighbors hav emost recently sent to it.
+	//(from the end of the most recent round).
+	//These broadcast arrays will be read and applied at the beginning of the following round.
+	//NOTE: *might* be replacing updateNeighbors(). But broadcast() will not mix already updated vectors with vectors sent to neighbors.
+	private static void broadcast() {
+
+	}
 	//At the beginning of a round, update the routers' routing tables with their neightbors' distance vectors.
 	//The only rows in a router's routing table that should be changed are those of their neighbors.
 	//TODO: Don't think this is working properly. Routers should broadcast their distance vectors at the end of a round,
