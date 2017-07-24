@@ -148,11 +148,35 @@ public class DistributedDistanceVector {
 				//loop thru destination in router's distance vector.
 				for (int destination = 1; destination <= nRouter; destination++) {
 					//set the router's row in the neighbor's broadcast array (which receives the broadcasts sent to said neighbor) to the router's distance vector.
-					broadcasts[neighbor][router][destination] = routingTables[router][router][destination];
+					broadcasts[router][neighbor][destination] = routingTables[router][router][destination];
 				}
 			}
 		}
 	}
+
+	//Prints each router's routing table and convergence delay
+	private static void printBroacasts() {
+		for (int router = 1; router <= nRouter; ++router) {
+			System.out.println("broadcast table for router " + (router));
+			for (int source = 1; source <= nRouter; ++source) {
+				for (int destination = 1; destination <= nRouter; ++destination) {
+					if (broadcasts[router][source][destination] < INF) {
+						System.out.format("%3d  ", broadcasts[router][source][destination]);
+					}
+					else {
+						System.out.print("inf  ");
+					}
+				}
+				System.out.println();
+			}
+			System.out.println("-- -- -- -- --");
+		}
+		System.out.println();
+		System.out.println("## ## ## ## ##");
+		System.out.println();
+	}
+
+
 	//At the beginning of a round, update the routers' routing tables with their neightbors' distance vectors.
 	//The only rows in a router's routing table that should be changed are those of their neighbors.
 	//TODO: Don't think this is working properly. Routers should broadcast their distance vectors at the end of a round,
@@ -175,7 +199,7 @@ public class DistributedDistanceVector {
 				int currentDistance = routingTables[router][router][destination];
 				int minDistance = currentDistance;
 				for (int neighbor: neighbors.get(router).keySet()) {
-					minDistance = Math.min(minDistance, routingTables[router][router][neighbor] + routingTables[router][neighbor][destination]);
+					minDistance = Math.min(minDistance, broadcasts[router][router][neighbor] + broadcasts[router][neighbor][destination]);
 					routingTables[router][router][destination] = minDistance;
 					if (currentDistance != minDistance) {
 						// Updates forwarding table
@@ -233,18 +257,22 @@ public class DistributedDistanceVector {
 	}
 
 	//Runs the distance vector protocol
-	//TODO: needs to handle events occurring at Round 0.
 	private static void runDistanceVector(int mode) {
 		if (mode == 1) {
 			convergenceDelay = 0;
+			// Just so we handle any events at round 0
+			if (updateTopology(0)) {
+			}
 			System.out.println("Round " + 0);
 			printTables();
+			broadcast();
 			for (int round = 1; ; ++round) {
 				if (updateTopology(round)) {
 					convergenceDelay = 0;
 				} else {
 					convergenceDelay++;
 				}
+				printBroacasts();
 				//updateNeighbors();
 				//TODO: process the distance vectors broadcast from neighbors
 				//2 parts: update neighbors' distance vectors in routing table, then determine the router's new distance vector based on this info.
@@ -314,7 +342,7 @@ public class DistributedDistanceVector {
 			for(int destination = 1; destination <= nRouter; destination++) {
 				//router's routing table; source = router; dest = destination.
 				distance = routingTables[router][router][destination];
-				if (distance > 100) {
+				if (distance > 100 && distance != INF) {
 					//count-to-infinity detected.
 					return true;
 				}
