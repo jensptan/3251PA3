@@ -1,0 +1,20 @@
+
+TODO: format this right for submission. Just putting the expected output here for testing purposes:
+
+With the TopologicalEvents.txt and InitialTopology.txt included, the expected end result distance vectors are:
+
+(next hop, distance)
+                Dest
+         1       2       3       4       5
+    1   (1,0)   (3,4)   (3,3)   (5,3)   (5,1)
+R
+    2   (3,4)   (2,0)   (3,1)   (3,3)   (3,5)
+O
+    3   (1,3)   (2,1)   (3,0)   (4,2)   (1or4,4)
+U
+    4   (5,3)   (3,3)   (3,2)   (4,0)   (5,2)
+T
+    5   (1,1)   (1or4,5)(1or4,4)(4,2)   (5,0)
+E
+
+R
