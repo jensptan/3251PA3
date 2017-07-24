@@ -137,6 +137,7 @@ public class DistributedDistanceVector {
 	//(from the end of the most recent round).
 	//These broadcast arrays will be read and applied at the beginning of the following round.
 	//NOTE: *might* be replacing updateNeighbors(). But broadcast() will not mix already updated vectors with vectors sent to neighbors.
+	//This keeps the broadcasted vectors safe from the vector updates at the beginning of the next round.
 	//TODO: this method will be where the variations diverge. This should be the only code that is different btwn the variations.
 	private static void broadcast() {
 
