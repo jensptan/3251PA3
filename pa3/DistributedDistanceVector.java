@@ -140,7 +140,18 @@ public class DistributedDistanceVector {
 	//This keeps the broadcasted vectors safe from the vector updates at the beginning of the next round.
 	//TODO: this method will be where the variations diverge. This should be the only code that is different btwn the variations.
 	private static void broadcast() {
-
+		broadcasts = new int[nRouter + 1][nRouter + 1][nRouter + 1];
+		//loop thru routers
+		for (int router = 1; router <= nRouter; router++) {
+			//loop thru router's neighbors
+			for (int neighbor: neighbors.get(router).keySet()) {
+				//loop thru destination in router's distance vector.
+				for (int destination = 1; destination <= nRouter; destination++) {
+					//set the router's row in the neighbor's broadcast array (which receives the broadcasts sent to said neighbor) to the router's distance vector.
+					broadcasts[neighbor][router][destination] = routingTables[router][router][destination];
+				}
+			}
+		}
 	}
 	//At the beginning of a round, update the routers' routing tables with their neightbors' distance vectors.
 	//The only rows in a router's routing table that should be changed are those of their neighbors.
@@ -156,6 +167,7 @@ public class DistributedDistanceVector {
 		}
 	}
 
+	//TODO: update routers based on broadcasted distance vectors.
 	private static void updateSelf() {
 		changed = false;
 		for (int router = 1; router <= nRouter; ++router) {
@@ -233,7 +245,9 @@ public class DistributedDistanceVector {
 				} else {
 					convergenceDelay++;
 				}
-				updateNeighbors();
+				//updateNeighbors();
+				//TODO: process the distance vectors broadcast from neighbors
+				//2 parts: update neighbors' distance vectors in routing table, then determine the router's new distance vector based on this info.
 				updateSelf();
 				System.out.println("Round " + round);
 				printTables();
@@ -250,6 +264,8 @@ public class DistributedDistanceVector {
 					System.out.println("Count-to-infinity conditions detected.");
 					return;
 				}
+				//broadcast new distance vector to neighbors, but do not process the distance vectors received yet.
+				broadcast();
 			}
 		} else if (mode == 0) {
 			convergenceDelay = 0;
@@ -260,7 +276,9 @@ public class DistributedDistanceVector {
 				} else {
 					convergenceDelay++;
 				}
-				updateNeighbors();
+				//updateNeighbors();
+				//TODO: process the distance vectors broadcast from neighbors
+				//2 parts: update neighbors' distance vectors in routing table, then determine the router's new distance vector based on this info.
 				updateSelf();
 
 				//If nothing's changed and we've passed the last topological event, we've converged!
@@ -273,6 +291,8 @@ public class DistributedDistanceVector {
 					System.out.println("Count-to-infinity conditions detected.");
 					return;
 				}
+				//broadcast new distance vector to neighbors, but do not process the distance vectors received yet.
+				broadcast();
 			}
 			System.out.println("Round " + round);
 			printTables();
