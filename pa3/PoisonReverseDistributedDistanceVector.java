@@ -117,13 +117,26 @@ public class PoisonReverseDistributedDistanceVector {
 		scanner.close();
 	}
 
-	//Called at the beginning of a round to enact any Topological Events for that round.
+    //Called at the beginning of a round to enact any Topological Events for that round.
 	//A topological event is enacted
-	//TODO: Needs to handle that indicies start at 0 and router #'s start at 1. Or start indexing at 1?
+	//event shouldn't be applied to routingTables[]? should be applied to neighbors[]?
 	private static boolean updateTopology(int round) {
 		if (topologicalEvents.containsKey(round)) {
 			for (Event event: topologicalEvents.get(round)) {
-				routingTables[event.source][event.source][event.destination] = event.weight;
+				//update neighbors HashMap with link updates from event (removal, new link, or updated weight)
+				int source = event.source;
+				int destination = event.destination;
+				int weight = event.weight;
+
+				if (weight < 0) {
+					//remove the link
+					neighbors.get(source).remove(destination);
+					neighbors.get(destination).remove(source);
+				} else {
+					//update the link
+					neighbors.get(source).put(destination, weight);
+					neighbors.get(destination).put(source, weight);
+				}
 			}
 			changed = true;
 			return true;
@@ -131,7 +144,7 @@ public class PoisonReverseDistributedDistanceVector {
 		return false;
 	}
 
-	//Simulates the "broadcasting" of each router's distance vector to its neighbors.
+    //Simulates the "broadcasting" of each router's distance vector to its neighbors.
 	//Each router has a nRouter + 1 x nRouter + 1 array, indices 1 to nRouter will be used.
 	//A router's broadcast array will hold the distance vectors its neighbors hav emost recently sent to it.
 	//(from the end of the most recent round).
@@ -141,6 +154,15 @@ public class PoisonReverseDistributedDistanceVector {
 	//TODO: this method will be where the variations diverge. This should be the only code that is different btwn the variations.
 	private static void broadcast() {
 		broadcasts = new int[nRouter + 1][nRouter + 1][nRouter + 1];
+
+		for (int router = 1; router <= nRouter; ++router) {
+			for (int source = 1; source <= nRouter; ++source) {
+	            for (int destination = 1; destination <= nRouter; ++destination) {
+	            	broadcasts[router][source][destination] = INF;
+	            }
+			}
+		}
+
 		//loop thru routers
 		for (int router = 1; router <= nRouter; router++) {
 			//loop thru router's neighbors
@@ -149,8 +171,7 @@ public class PoisonReverseDistributedDistanceVector {
 				for (int destination = 1; destination <= nRouter; destination++) {
 					//set the router's row in the neighbor's broadcast array (which receives the broadcasts sent to said neighbor) to the router's distance vector.
                     if (neighbor == forwardingTables[router][destination][2] && neighbor != destination) {
-                        // neighbor is the next hop for the destination so we broadcast a value of INF
-                        broadcasts[neighbor][router][destination] = INF;
+                        // neighbor is the next hop for the destination so we don't broadcast
                     } else {
                         // Other wise we broadcast
                         broadcasts[neighbor][router][destination] = routingTables[router][router][destination];
@@ -197,7 +218,7 @@ public class PoisonReverseDistributedDistanceVector {
 		}
 	}
 
-	//TODO: update routers based on broadcasted distance vectors.
+    //TODO: update routers based on broadcasted distance vectors.
 	private static void updateSelf() {
 		changed = false;
 		for (int router = 1; router <= nRouter; ++router) {
@@ -205,14 +226,22 @@ public class PoisonReverseDistributedDistanceVector {
 				int currentDistance = routingTables[router][router][destination];
 				int minDistance = currentDistance;
 				for (int neighbor: neighbors.get(router).keySet()) {
-					minDistance = Math.min(minDistance, broadcasts[router][router][neighbor] + broadcasts[router][neighbor][destination]);
+					minDistance = Math.min(minDistance, neighbors.get(router).get(neighbor) + broadcasts[router][neighbor][destination]);
+					routingTables[router][neighbor][destination] = broadcasts[router][neighbor][destination];
 					routingTables[router][router][destination] = minDistance;
 					if (currentDistance != minDistance) {
 						// Updates forwarding table
 						forwardingTables[router][destination][1] = minDistance;
 						forwardingTables[router][destination][2] = neighbor;
 						changed = true;
+						//TODO: remove print statement
+//						if (router == 2) {
+//							System.out.println("Trying to understand 2. Destination: " + destination + " Neighbor: " + neighbor + " \nDist To Neighbor: " + neighbors.get(router).get(neighbor) + " Neighbor to Dest: " + broadcasts[router][neighbor][destination] + " \nCurrent Dist: " + currentDistance + " New Dist: " + minDistance + "\n");
+//						}
+						currentDistance = minDistance;
 					}
+
+
 				}
 			}
 		}
@@ -303,7 +332,11 @@ public class PoisonReverseDistributedDistanceVector {
 				broadcast();
 			}
 		} else if (mode == 0) {
-			convergenceDelay = 0;
+            // Just so we handle any events at round 0
+			if (updateTopology(0)) {
+			}
+            convergenceDelay = 0;
+            broadcast();
 			int round;
 			for (round = 1; ; ++round) {
 				if (updateTopology(round)) {

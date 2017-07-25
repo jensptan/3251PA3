@@ -127,7 +127,6 @@ public class DistributedDistanceVector {
 		if (topologicalEvents.containsKey(round)) {
 			for (Event event: topologicalEvents.get(round)) {
 				//update neighbors HashMap with link updates from event (removal, new link, or updated weight)
-//				routingTables[event.source][event.source][event.destination] = event.weight;
 				int source = event.source;
 				int destination = event.destination;
 				int weight = event.weight;
