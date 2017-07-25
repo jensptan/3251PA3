@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 public class DistributedDistanceVector {
 	private static int nRouter;
@@ -81,6 +82,8 @@ public class DistributedDistanceVector {
 				neighbors.get(destination).put(source, weight);
 				forwardingTables[source][destination][1] = weight;
 				forwardingTables[source][destination][2] = destination;
+				forwardingTables[destination][source][1] = weight;
+				forwardingTables[destination][source][2] = source;
 			}
 		}
 		scanner.close();
@@ -119,7 +122,7 @@ public class DistributedDistanceVector {
 
 	//Called at the beginning of a round to enact any Topological Events for that round.
 	//A topological event is enacted
-	//TODO: Needs to handle that indicies start at 0 and router #'s start at 1. Or start indexing at 1?
+	//event shouldn't be applied to routingTables[]? should be applied to neighbors[]?
 	private static boolean updateTopology(int round) {
 		if (topologicalEvents.containsKey(round)) {
 			for (Event event: topologicalEvents.get(round)) {
@@ -274,6 +277,7 @@ public class DistributedDistanceVector {
 			}
 			System.out.println("Round " + 0);
 			printTables();
+			printForwardingTables();
 			broadcast();
 			for (int round = 1; ; ++round) {
 				if (updateTopology(round)) {
@@ -281,6 +285,7 @@ public class DistributedDistanceVector {
 				} else {
 					convergenceDelay++;
 				}
+				System.out.println("Beginning Round " + round + "\n");
 				printBroacasts();
 				//updateNeighbors();
 				//TODO: process the distance vectors broadcast from neighbors
@@ -303,6 +308,13 @@ public class DistributedDistanceVector {
 				}
 				//broadcast new distance vector to neighbors, but do not process the distance vectors received yet.
 				broadcast();
+
+				//TODO: remove
+//				try {
+//					TimeUnit.SECONDS.sleep(30);
+//				} catch (InterruptedException e) {
+//					e.printStackTrace();
+//				}
 			}
 		} else if (mode == 0) {
 			// Just so we handle any events at round 0

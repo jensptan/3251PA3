@@ -1,5 +1,5 @@
 Names: Jacob Hayes and Jensen Tanner
-Emails: jhayes42@gatech.edu
+Emails: jhayes42@gatech.edu and jtanner35@gatech.edu
 Date: July 21st, 2017
 Assignment: Summer 2017 CS 3251 Programming Assignment 3: Distance Vector Routing
 
