@@ -141,6 +141,15 @@ public class DistributedDistanceVector {
 	//TODO: this method will be where the variations diverge. This should be the only code that is different btwn the variations.
 	private static void broadcast() {
 		broadcasts = new int[nRouter + 1][nRouter + 1][nRouter + 1];
+
+		for (int router = 1; router <= nRouter; ++router) {
+			for (int source = 1; source <= nRouter; ++source) {
+	            for (int destination = 1; destination <= nRouter; ++destination) {
+	            	broadcasts[router][source][destination] = INF;
+	            }
+			}
+		}
+
 		//loop thru routers
 		for (int router = 1; router <= nRouter; router++) {
 			//loop thru router's neighbors
