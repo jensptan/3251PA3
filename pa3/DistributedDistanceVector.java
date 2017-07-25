@@ -126,7 +126,21 @@ public class DistributedDistanceVector {
 	private static boolean updateTopology(int round) {
 		if (topologicalEvents.containsKey(round)) {
 			for (Event event: topologicalEvents.get(round)) {
-				routingTables[event.source][event.source][event.destination] = event.weight;
+				//update neighbors HashMap with link updates from event (removal, new link, or updated weight)
+//				routingTables[event.source][event.source][event.destination] = event.weight;
+				int source = event.source;
+				int destination = event.destination;
+				int weight = event.weight;
+
+				if (weight < 0) {
+					//remove the link
+					neighbors.get(source).remove(destination);
+					neighbors.get(destination).remove(source);
+				} else {
+					//update the link
+					neighbors.get(source).put(destination, weight);
+					neighbors.get(destination).put(source, weight);
+				}
 			}
 			changed = true;
 			return true;
@@ -211,14 +225,22 @@ public class DistributedDistanceVector {
 				int currentDistance = routingTables[router][router][destination];
 				int minDistance = currentDistance;
 				for (int neighbor: neighbors.get(router).keySet()) {
-					minDistance = Math.min(minDistance, routingTables[router][router][neighbor] + broadcasts[router][neighbor][destination]);
+					minDistance = Math.min(minDistance, neighbors.get(router).get(neighbor) + broadcasts[router][neighbor][destination]);
+					routingTables[router][neighbor][destination] = broadcasts[router][neighbor][destination];
 					routingTables[router][router][destination] = minDistance;
 					if (currentDistance != minDistance) {
 						// Updates forwarding table
 						forwardingTables[router][destination][1] = minDistance;
 						forwardingTables[router][destination][2] = neighbor;
 						changed = true;
+						//TODO: remove print statement
+//						if (router == 2) {
+//							System.out.println("Trying to understand 2. Destination: " + destination + " Neighbor: " + neighbor + " \nDist To Neighbor: " + neighbors.get(router).get(neighbor) + " Neighbor to Dest: " + broadcasts[router][neighbor][destination] + " \nCurrent Dist: " + currentDistance + " New Dist: " + minDistance + "\n");
+//						}
+						currentDistance = minDistance;
 					}
+
+
 				}
 			}
 		}
@@ -349,6 +371,8 @@ public class DistributedDistanceVector {
 			}
 			System.out.println("Round " + round);
 			printTables();
+			printForwardingTables();
+			System.out.println(neighbors);
 		} else {
 			System.out.println("Please use a valid mode:");
 			System.out.println("1 for a detailed output of each round");
