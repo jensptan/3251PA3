@@ -208,7 +208,7 @@ public class DistributedDistanceVector {
 				int currentDistance = routingTables[router][router][destination];
 				int minDistance = currentDistance;
 				for (int neighbor: neighbors.get(router).keySet()) {
-					minDistance = Math.min(minDistance, broadcasts[router][router][neighbor] + broadcasts[router][neighbor][destination]);
+					minDistance = Math.min(minDistance, routingTables[router][router][neighbor] + broadcasts[router][neighbor][destination]);
 					routingTables[router][router][destination] = minDistance;
 					if (currentDistance != minDistance) {
 						// Updates forwarding table
@@ -305,7 +305,11 @@ public class DistributedDistanceVector {
 				broadcast();
 			}
 		} else if (mode == 0) {
+			// Just so we handle any events at round 0
+			if (updateTopology(0)) {
+			}
 			convergenceDelay = 0;
+			broadcast();
 			int round;
 			for (round = 1; ; ++round) {
 				if (updateTopology(round)) {
