@@ -149,8 +149,9 @@ public class SplitHorizonDistributedDistanceVector {
 				for (int destination = 1; destination <= nRouter; destination++) {
 					//set the router's row in the neighbor's broadcast array (which receives the broadcasts sent to said neighbor) to the router's distance vector.
                     if (neighbor == forwardingTables[router][destination][2]) {
-
+                        // neighbor is the next hop for the destination so we don't broadcast
                     } else {
+                        // Other wise we broadcast
                         broadcasts[neighbor][router][destination] = routingTables[router][router][destination];
                     }
 				}
