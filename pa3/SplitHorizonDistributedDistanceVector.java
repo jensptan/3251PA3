@@ -5,7 +5,7 @@ import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
-public class DistributedDistanceVector {
+public class SplitHorizonDistributedDistanceVector {
 	private static int nRouter;
 	private static int[][][] routingTables; //[router][source][destination] -> distance
 	private static int[][][] forwardingTables; //[router][destination][details] -> for each router/destination pair, there are 3 detail entries: destination, cost, nextHop
