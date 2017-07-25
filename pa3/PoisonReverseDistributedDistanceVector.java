@@ -148,7 +148,7 @@ public class PoisonReverseDistributedDistanceVector {
 				//loop thru destination in router's distance vector.
 				for (int destination = 1; destination <= nRouter; destination++) {
 					//set the router's row in the neighbor's broadcast array (which receives the broadcasts sent to said neighbor) to the router's distance vector.
-                    if (neighbor == forwardingTables[router][destination][2]) {
+                    if (neighbor == forwardingTables[router][destination][2] && neighbor != destinatio) {
                         // neighbor is the next hop for the destination so we broadcast a value of INF
                         broadcasts[neighbor][router][destination] = INF;
                     } else {
