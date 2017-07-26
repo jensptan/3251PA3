@@ -46,3 +46,4 @@ Instructions for Compiling and Running:
 
 Known Bugs or Limitations:
     - Topological events that remove a link do not always get processed correctly
+    - Topological events that update the weight of an existing link do not always get processed correctly

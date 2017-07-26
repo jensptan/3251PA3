@@ -280,7 +280,6 @@ public class DistributedDistanceVector {
 			System.out.println("-- -- -- -- --");
 		}
 		System.out.println();
-		System.out.println("Convergence delay: " + convergenceDelay);
 		System.out.println("## ## ## ## ##");
 		System.out.println();
 	}
@@ -302,7 +301,7 @@ public class DistributedDistanceVector {
 				} else {
 					convergenceDelay++;
 				}
-				System.out.println("Beginning Round " + round + "\n");
+//				System.out.println("Beginning Round " + round + "\n");
 				//printBroacasts();
 				//updateNeighbors();
 				//TODO: process the distance vectors broadcast from neighbors
@@ -310,6 +309,7 @@ public class DistributedDistanceVector {
 				updateSelf();
 				System.out.println("Round " + round);
 				printTables();
+
 				//printForwardingTables();
 				//TODO: forwarding tables aren't always matching routing tables' outputs for distance. Hmm.
 				//If nothing's changed and we've passed the last topological event, we've converged!
@@ -325,6 +325,11 @@ public class DistributedDistanceVector {
 				//broadcast new distance vector to neighbors, but do not process the distance vectors received yet.
 				broadcast();
 			}
+
+			System.out.println("Convergence delay: " + convergenceDelay);
+			System.out.println();
+			System.out.println("## ## ## ## ##");
+			System.out.println();
 		} else if (mode == 0) {
 			// Just so we handle any events at round 0
 			if (updateTopology(0)) {
@@ -358,6 +363,11 @@ public class DistributedDistanceVector {
 			}
 			System.out.println("Round " + round);
 			printTables();
+
+			System.out.println("Convergence delay: " + convergenceDelay);
+			System.out.println();
+			System.out.println("## ## ## ## ##");
+			System.out.println();
 			//printForwardingTables();
 			//System.out.println(neighbors);
 		} else {
