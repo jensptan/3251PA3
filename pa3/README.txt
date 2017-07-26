@@ -45,3 +45,4 @@ Instructions for Compiling and Running:
 
 
 Known Bugs or Limitations:
+    - Topological events that remove a link do not always get processed correctly

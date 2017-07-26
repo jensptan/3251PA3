@@ -307,14 +307,14 @@ public class SplitHorizonDistributedDistanceVector {
 				} else {
 					convergenceDelay++;
 				}
-				printBroacasts();
+				//printBroacasts();
 				//updateNeighbors();
 				//TODO: process the distance vectors broadcast from neighbors
 				//2 parts: update neighbors' distance vectors in routing table, then determine the router's new distance vector based on this info.
 				updateSelf();
 				System.out.println("Round " + round);
 				printTables();
-				printForwardingTables();
+				//printForwardingTables();
 				//TODO: only print convergence delay after final routing table
 				//TODO: forwarding tables aren't always matching routing tables' outputs for distance. Hmm.
 				//If nothing's changed and we've passed the last topological event, we've converged!
