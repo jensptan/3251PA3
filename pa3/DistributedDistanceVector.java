@@ -232,10 +232,6 @@ public class DistributedDistanceVector {
 						forwardingTables[router][destination][1] = minDistance;
 						forwardingTables[router][destination][2] = neighbor;
 						changed = true;
-						//TODO: remove print statement
-//						if (router == 2) {
-//							System.out.println("Trying to understand 2. Destination: " + destination + " Neighbor: " + neighbor + " \nDist To Neighbor: " + neighbors.get(router).get(neighbor) + " Neighbor to Dest: " + broadcasts[router][neighbor][destination] + " \nCurrent Dist: " + currentDistance + " New Dist: " + minDistance + "\n");
-//						}
 						currentDistance = minDistance;
 					}
 
@@ -298,7 +294,7 @@ public class DistributedDistanceVector {
 			}
 			System.out.println("Round " + 0);
 			printTables();
-			printForwardingTables();
+			//printForwardingTables();
 			broadcast();
 			for (int round = 1; ; ++round) {
 				if (updateTopology(round)) {
@@ -307,15 +303,14 @@ public class DistributedDistanceVector {
 					convergenceDelay++;
 				}
 				System.out.println("Beginning Round " + round + "\n");
-				printBroacasts();
+				//printBroacasts();
 				//updateNeighbors();
 				//TODO: process the distance vectors broadcast from neighbors
 				//2 parts: update neighbors' distance vectors in routing table, then determine the router's new distance vector based on this info.
 				updateSelf();
 				System.out.println("Round " + round);
 				printTables();
-				printForwardingTables();
-				//TODO: only print convergence delay after final routing table
+				//printForwardingTables();
 				//TODO: forwarding tables aren't always matching routing tables' outputs for distance. Hmm.
 				//If nothing's changed and we've passed the last topological event, we've converged!
 				if ((changed == false) && (round >= lastEvent)) {
@@ -329,13 +324,6 @@ public class DistributedDistanceVector {
 				}
 				//broadcast new distance vector to neighbors, but do not process the distance vectors received yet.
 				broadcast();
-
-				//TODO: remove
-//				try {
-//					TimeUnit.SECONDS.sleep(30);
-//				} catch (InterruptedException e) {
-//					e.printStackTrace();
-//				}
 			}
 		} else if (mode == 0) {
 			// Just so we handle any events at round 0
@@ -370,8 +358,8 @@ public class DistributedDistanceVector {
 			}
 			System.out.println("Round " + round);
 			printTables();
-			printForwardingTables();
-			System.out.println(neighbors);
+			//printForwardingTables();
+			//System.out.println(neighbors);
 		} else {
 			System.out.println("Please use a valid mode:");
 			System.out.println("1 for a detailed output of each round");
